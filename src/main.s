@@ -27,6 +27,7 @@ frames_since_arrow_lined_up: .res 4 ; Frames since the notes lined up with the a
 arrow_line_up_index:         .res 4 ; NoteBuffer Index when the notes lined up
 FRAMES_SINCE_LINE_UP_CUTOFF = 15
 animate_pressed_direction:   .res 4 ; Frames to make the top arrows "pressed"
+animate_hit_direction:       .res 4 ; Frames to make the top arrows "hit"
 cur_arrow:                   .res 1 ; Current arrow to run logic for
 
 rating_display_frames:       .res 1
@@ -155,6 +156,10 @@ forever:
   countdown animate_pressed_direction+1
   countdown animate_pressed_direction+2
   countdown animate_pressed_direction+3
+  countdown animate_hit_direction+0
+  countdown animate_hit_direction+1
+  countdown animate_hit_direction+2
+  countdown animate_hit_direction+3
 
   lda rating_display_frames
   beq :+
@@ -247,6 +252,12 @@ LogicForDirection:
   lda frames_since_arrow_lined_up,x
   jsr frames_to_rating
   sta rating_display_type
+  cmp #5 ; If not a Boo, animate the hit
+  beq :+
+    lda #4
+    sta animate_hit_direction,x
+  :
+
   lda #10
   sta rating_display_frames
 
@@ -300,6 +311,12 @@ AnimateTopArrowTop:
   asl
   adc #$80
   sta 0
+  lda animate_hit_direction,x
+  beq :+
+    lda 0
+    ora #$20
+    bne @Skip
+  :
   lda animate_pressed_direction,x
   beq :+
     lda 0
@@ -307,6 +324,7 @@ AnimateTopArrowTop:
     sta 0
   :
   lda 0
+@Skip:
   sta PPUDATA
   add #1
   sta PPUDATA
@@ -325,6 +343,12 @@ AnimateTopArrowBottom:
   asl
   adc #$90
   sta 0
+  lda animate_hit_direction,x
+  beq :+
+    lda 0
+    ora #$20
+    bne @Skip
+  :
   lda animate_pressed_direction,x
   beq :+
     lda 0
@@ -332,6 +356,7 @@ AnimateTopArrowBottom:
     sta 0
   :
   lda 0
+@Skip:
   sta PPUDATA
   add #1
   sta PPUDATA
